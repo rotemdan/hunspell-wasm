@@ -1,8 +1,9 @@
-import { readFile } from 'fs/promises'
 import { getRandomId } from './Utilities.js'
 import { WasmMemoryManager } from './WasmMemoryManager.js'
 
 export async function createHunspellFromFiles(affixesFilePath: string, dictionaryFilePath: string, key?: string) {
+	const { readFile } = await import('fs/promises')
+
 	const affixes = await readFile(affixesFilePath, 'utf-8')
 	const dictionary = await readFile(dictionaryFilePath, 'utf-8')
 
@@ -199,6 +200,8 @@ export class Hunspell {
 	}
 
 	async addDictionaryFromFile(dictionaryFilePath: string) {
+		const { readFile } = await import('fs/promises')
+		
 		const dictionary = await readFile(dictionaryFilePath, 'utf-8')
 
 		this.addDictionaryFromString(dictionary)
