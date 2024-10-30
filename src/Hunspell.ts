@@ -278,11 +278,12 @@ export class Hunspell {
 		const wasmMemory = this.wasmMemory!
 
 		const pointerArrayRef = wasmMemory.wrapUint32Array(address, count).detach()
+		const pointerArrayElements = pointerArrayRef.view
 
 		const values: string[] = []
 
 		for (let i = 0; i < count; i++) {
-			const wrappedString = wasmMemory.wrapNullTerminatedUtf8String(pointerArrayRef.view[i]).detach()
+			const wrappedString = wasmMemory.wrapNullTerminatedUtf8String(pointerArrayElements[i]).detach()
 
 			values.push(wrappedString.value)
 		}
