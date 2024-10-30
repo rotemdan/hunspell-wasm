@@ -3,7 +3,7 @@ import { createHunspellFromFiles } from './Hunspell.js'
 const log = console.log
 
 export async function test() {
-	const hunspell = await createHunspellFromFiles('dict/English (American).aff', 'dict/English (American).dic')
+	const hunspell = await createHunspellFromFiles('dict/en-US.aff', 'dict/en-US.dic')
 
 	log(hunspell.getDictionaryEncoding())
 
