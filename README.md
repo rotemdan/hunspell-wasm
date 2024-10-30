@@ -2,7 +2,7 @@
 
 WebAssembly port of the [Hunspell](https://github.com/hunspell/hunspell) spell-checking library.
 
-Includes a fully-featured and easy-to-use wrapper written in TypeScript.
+Includes an easy-to-use wrapper written in TypeScript.
 
 ## Installation
 
@@ -78,7 +78,7 @@ hunspell.stemWord('Capturing')
 // Output: [ 'capture' ]
 ```
 
-## Importing within a CommonJS module
+## Importing from within a CommonJS module
 
 Use a dynamic `import` expression in an `async` function context:
 
