@@ -78,9 +78,11 @@ hunspell.stemWord('Capturing')
 // Output: [ 'capture' ]
 ```
 
-## Importing in a CommonJS module
+## Importing within a CommonJS module
 
-Use a dynamic import in an `async` function:
+Use a dynamic `import` expression in an `async` function context:
+
+`MyCommonJSModule.cjs`:
 
 ```ts
 async function start() {
