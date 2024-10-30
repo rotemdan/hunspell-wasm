@@ -1,0 +1,32 @@
+{
+	"name": "hunspell-wasm",
+	"version": "0.1.0",
+	"description": "WebAssembly port of the Hunspell spell-checking library.",
+	"author": "Rotem Dan",
+	"main": "./dist/Hunspell.js",
+	"type": "module",
+	"files": [
+		"src",
+		"dist",
+		"wasm",
+		"docs",
+		"README.md",
+		"COPYING",
+		"COPYING.LESSER",
+		"COPYING.MPL",
+		"tsconfig.json"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/rotemdan/hunspell-wasm"
+	},
+	"bugs": {
+		"url": "https://github.com/rotemdan/hunspell-wasm/issues"
+	},
+	"scripts": {},
+	"license": "(LGPL-2.0 OR GPL-2.0 OR MPL-1.1)",
+	"dependencies": {},
+	"devDependencies": {
+		"@types/node": "^22.8.4"
+	}
+}
