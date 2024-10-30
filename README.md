@@ -102,7 +102,7 @@ See instructions [here](docs/Building.md).
 
 ## TODO
 
-* Wrap C API methods `Hunspell_stem2`, `Hunspell_generate`, `Hunspell_generate2`
+* Wrap C API methods `Hunspell_stem2`, `Hunspell_generate2`
 
 ## License
 
