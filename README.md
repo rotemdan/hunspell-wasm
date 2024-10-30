@@ -68,9 +68,14 @@ hunspell.addDictionaryFromString(dictionaryString)
 
 Other supported methods:
 ```ts
-hunspell.getSuffixSuggestions('Ency')
-hunspell.analyzeWord('Encyclopedia')
-hunspell.stemWord('Encyclopedia')
+hunspell.getSuffixSuggestions('run')
+// Output: [ 'runs', "run's" ]
+
+hunspell.analyzeWord('Capturing')
+// Output: [ ' st:capture fl:G' ]
+
+hunspell.stemWord('Capturing')
+// Output: [ 'capture' ]
 ```
 
 ## Importing in a CommonJS module
