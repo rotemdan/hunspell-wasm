@@ -18,7 +18,7 @@ export async function createHunspellFromStrings(affixes: string, dictionary: str
 	return hunspell
 }
 
-// C API methods not implemented yet: wrap Hunspell_stem2, Hunspell_generate, Hunspell_generate2
+// C API methods not wrapped yet: wrap Hunspell_stem2, Hunspell_generate, Hunspell_generate2
 
 export class Hunspell {
 	private hunspellHandle?: number
@@ -201,7 +201,7 @@ export class Hunspell {
 
 	async addDictionaryFromFile(dictionaryFilePath: string) {
 		const { readFile } = await import('fs/promises')
-		
+
 		const dictionary = await readFile(dictionaryFilePath, 'utf-8')
 
 		this.addDictionaryFromString(dictionary)
@@ -251,6 +251,10 @@ export class Hunspell {
 	dispose() {
 		if (this.isDisposed) {
 			return
+		}
+
+		if (!this.isInitialized) {
+			throw new Error(`Hunspell instance can't be disposed since hasn't been initialized.`)
 		}
 
 		const m = this.wasmMemory!.wasmModule
@@ -305,11 +309,7 @@ export class Hunspell {
 	}
 
 	private get wasmModule() {
-		if (this.isInitialized) {
-			return this.wasmMemory!.wasmModule
-		}
-
-		return undefined
+		return this.wasmMemory?.wasmModule
 	}
 }
 
