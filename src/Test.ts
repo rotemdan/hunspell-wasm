@@ -11,7 +11,7 @@ export async function test() {
 	log(hunspell.testSpelling('Hellow'))
 
 	log(hunspell.getSpellingSuggestions('Hellow'))
-	log(hunspell.getSuffixSuggestions('Capturing'))
+	log(hunspell.getSuffixSuggestions('run'))
 	log(hunspell.analyzeWord('Capturing'))
 	log(hunspell.stemWord('Capturing'))
 
