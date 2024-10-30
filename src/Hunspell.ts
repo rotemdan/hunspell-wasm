@@ -65,6 +65,10 @@ export class Hunspell {
 
 		affixesVirtualFileNameRef.free()
 		dictionaryVirtualFileNameRef.free()
+
+		if (this.hunspellHandle === 0) {
+			throw new Error(`Failed to create hunspell instance`)
+		}
 	}
 
 	testSpelling(word: string) {
@@ -139,11 +143,11 @@ export class Hunspell {
 	}
 
 	addWord(newWord: string, options?: { flags?: string, affixReferenceWord?: string }) {
+		this.ensureInitializedAndNotDisposed()
+
 		if (options?.flags != null && options?.affixReferenceWord != null) {
 			throw new Error(`Either 'flags' or 'affixReferenceWord' options can be optionally provided, but not both at the same time.`)
 		}
-
-		this.ensureInitializedAndNotDisposed()
 
 		const m = this.wasmModule
 		const wasmMemory = this.wasmMemory!
@@ -266,12 +270,12 @@ export class Hunspell {
 
 		const wasmMemory = this.wasmMemory!
 
-		const resultArrayRef = wasmMemory.wrapUint32Array(address, count).detach()
+		const pointerArrayRef = wasmMemory.wrapUint32Array(address, count).detach()
 
 		const values: string[] = []
 
 		for (let i = 0; i < count; i++) {
-			const wrappedString = wasmMemory.wrapNullTerminatedUtf8String(resultArrayRef.view[i]).detach()
+			const wrappedString = wasmMemory.wrapNullTerminatedUtf8String(pointerArrayRef.view[i]).detach()
 
 			values.push(wrappedString.value)
 		}
