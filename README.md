@@ -16,8 +16,8 @@ npm install hunspell-wasm
 // Import
 import { createHunspellFromFiles } from 'hunspell-wasm'
 
-// Create instance
-const hunspell = await createHunspellFromFiles('dict/English (American).aff', 'dict/English (American).dic')
+// Create instance (dictionary paths are illustrative)
+const hunspell = await createHunspellFromFiles('dict/en-US.aff', 'dict/en-US.dic')
 
 console.log(hunspell.testSpelling('Hello'))
 // Output: true
@@ -84,6 +84,10 @@ async function start() {
 	//...
 }
 ```
+
+## Dictionary files
+
+You can find `.aff` and `.dic` dictionary files for many different languages in [`titoBouzout`'s repository](https://github.com/titoBouzout/Dictionaries/).
 
 ## Building the WebAssembly module
 
