@@ -1,6 +1,6 @@
 {
 	"name": "hunspell-wasm",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "WebAssembly port of the Hunspell spell-checking library.",
 	"author": "Rotem Dan",
 	"main": "./dist/Hunspell.js",
