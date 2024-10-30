@@ -18,7 +18,7 @@ export async function createHunspellFromStrings(affixes: string, dictionary: str
 	return hunspell
 }
 
-// C API methods not wrapped yet: Hunspell_stem2, Hunspell_generate, Hunspell_generate2
+// C API methods not wrapped yet: Hunspell_stem2, Hunspell_generate2
 
 export class Hunspell {
 	private hunspellHandle?: number
@@ -129,10 +129,10 @@ export class Hunspell {
 			throw `Unsupported operation ID: ${operationId}`
 		}
 
-		let suggestions: string[] = []
+		let results: string[] = []
 
 		if (resultCount > 0 && resultPtrRef.value !== 0) {
-			suggestions = this.readStringList(resultPtrRef.value, resultCount)
+			results = this.readStringList(resultPtrRef.value, resultCount)
 
 			m._Hunspell_free_list(hunspellHandle, resultPtrRef.address, resultCount)
 		}
@@ -140,15 +140,40 @@ export class Hunspell {
 		resultPtrRef.free()
 		wordRef.free()
 
-		return suggestions
+		return results
 	}
 
-	addWord(newWord: string, options?: { flags?: string, affixReferenceWord?: string }) {
+	generateByExample(word1: string, word2: string) {
 		this.ensureInitializedAndNotDisposed()
 
-		if (options?.flags != null && options?.affixReferenceWord != null) {
-			throw new Error(`Either 'flags' or 'affixReferenceWord' options can be optionally provided, but not both at the same time.`)
+		const m = this.wasmModule
+		const wasmMemory = this.wasmMemory!
+		const hunspellHandle = this.hunspellHandle
+
+		const word1Ref = wasmMemory.allocNullTerminatedUtf8String(word1)
+		const word2Ref = wasmMemory.allocNullTerminatedUtf8String(word2)
+
+		const resultPtrRef = wasmMemory.allocPointer()
+
+		const resultCount = m._Hunspell_generate(hunspellHandle, resultPtrRef.address, word1Ref.address, word2Ref.address)
+
+		let results: string[] = []
+
+		if (resultCount > 0 && resultPtrRef.value !== 0) {
+			results = this.readStringList(resultPtrRef.value, resultCount)
+
+			m._Hunspell_free_list(hunspellHandle, resultPtrRef.address, resultCount)
 		}
+
+		resultPtrRef.free()
+		word1Ref.free()
+		word2Ref.free()
+
+		return results
+	}
+
+	addWord(newWord: string) {
+		this.ensureInitializedAndNotDisposed()
 
 		const m = this.wasmModule
 		const wasmMemory = this.wasmMemory!
@@ -156,24 +181,50 @@ export class Hunspell {
 
 		const wordRef = wasmMemory.allocNullTerminatedUtf8String(newWord)
 
-		let errorCode: number
+		const errorCode: number = m._Hunspell_add(hunspellHandle, wordRef.address)
 
-		if (options?.flags) {
-			const flagsRef = wasmMemory.allocNullTerminatedUtf8String(options.flags)
+		wordRef.free()
 
-			errorCode = m._Hunspell_add_with_flags(hunspellHandle, wordRef.address, flagsRef.address)
-
-			flagsRef.free()
-		} else if (options?.affixReferenceWord) {
-			const affixReferenceWordRef = wasmMemory.allocNullTerminatedUtf8String(options.affixReferenceWord)
-
-			errorCode = m._Hunspell_add_with_affix(hunspellHandle, wordRef.address, affixReferenceWordRef.address)
-
-			affixReferenceWordRef.free()
-		} else {
-			errorCode = m._Hunspell_add(hunspellHandle, wordRef.address)
+		if (errorCode !== 0) {
+			throw new Error(`addWord failed with error code ${errorCode}`)
 		}
+	}
 
+	addWordWithFlags(newWord: string, flags: string, description: string) {
+		this.ensureInitializedAndNotDisposed()
+
+		const m = this.wasmModule
+		const wasmMemory = this.wasmMemory!
+		const hunspellHandle = this.hunspellHandle
+
+		const wordRef = wasmMemory.allocNullTerminatedUtf8String(newWord)
+		const flagsRef = wasmMemory.allocNullTerminatedUtf8String(flags)
+		const descriptionRef = wasmMemory.allocNullTerminatedUtf8String(description)
+
+		const errorCode: number = m._Hunspell_add_with_flags(hunspellHandle, wordRef.address, flagsRef.address, descriptionRef.address)
+
+		descriptionRef.free()
+		flagsRef.free()
+		wordRef.free()
+
+		if (errorCode !== 0) {
+			throw new Error(`addWord failed with error code ${errorCode}`)
+		}
+	}
+
+	addWordWithAffix(newWord: string, example: string) {
+		this.ensureInitializedAndNotDisposed()
+
+		const m = this.wasmModule
+		const wasmMemory = this.wasmMemory!
+		const hunspellHandle = this.hunspellHandle
+
+		const wordRef = wasmMemory.allocNullTerminatedUtf8String(newWord)
+		const exampleRef = wasmMemory.allocNullTerminatedUtf8String(example)
+
+		const errorCode: number = m._Hunspell_add_with_affix(hunspellHandle, wordRef.address, exampleRef.address)
+
+		exampleRef.free()
 		wordRef.free()
 
 		if (errorCode !== 0) {
