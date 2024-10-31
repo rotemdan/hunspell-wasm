@@ -1,6 +1,6 @@
 {
 	"name": "hunspell-wasm",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "WebAssembly port of the Hunspell spell-checking library.",
 	"author": "Rotem Dan",
 	"main": "./dist/Hunspell.js",
@@ -29,6 +29,6 @@
 	"license": "(LGPL-2.0 OR GPL-2.0 OR MPL-1.1)",
 	"dependencies": {},
 	"devDependencies": {
-		"@types/node": "^22.8.4"
+		"@types/node": "^22.8.5"
 	}
 }
