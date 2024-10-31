@@ -14,6 +14,7 @@ export async function test() {
 	log(hunspell.getSuffixSuggestions('run'))
 	log(hunspell.analyzeWord('Capturing'))
 	log(hunspell.stemWord('Capturing'))
+	log(hunspell.generateByExample('good', 'goods'))
 
 	log(hunspell.testSpelling('Baba'))
 	hunspell.addWord('Baba')
