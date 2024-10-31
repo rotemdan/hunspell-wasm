@@ -11,9 +11,9 @@ export async function createHunspellFromFiles(affixesFilePath: string, dictionar
 }
 
 export async function createHunspellFromStrings(affixes: string, dictionary: string, key?: string) {
-	const hunspell = new Hunspell()
+	const wasmModule = await getWasmModule()
 
-	await hunspell.initialize(affixes, dictionary, key)
+	const hunspell = new Hunspell(wasmModule, affixes, dictionary, key)
 
 	return hunspell
 }
@@ -21,23 +21,18 @@ export async function createHunspellFromStrings(affixes: string, dictionary: str
 // C API methods not wrapped yet: Hunspell_stem2, Hunspell_generate2
 
 export class Hunspell {
-	private hunspellHandle?: number
-	private wasmMemory?: WasmMemoryManager
+	private readonly wasmModule: any
+	private wasmMemory: WasmMemoryManager
+	private hunspellHandle: number
 	private disposed = false
 
-	constructor() {
-	}
-
-	async initialize(affixes: string, dictionary: string, key?: string) {
+	constructor(wasmModule: any, affixes: string, dictionary: string, key?: string) {
 		if (this.isDisposed) {
 			throw new Error(`Hunspell instance has been disposed. It cannot be re-initialized.`)
 		}
 
-		if (this.hunspellHandle) {
-			throw new Error(`Hunspell instance has already been initialized.`)
-		}
-
-		const m = await getInstance()
+		this.wasmModule = wasmModule
+		const m = wasmModule
 
 		this.wasmMemory = new WasmMemoryManager(m)
 
@@ -73,10 +68,10 @@ export class Hunspell {
 	}
 
 	testSpelling(word: string) {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 		const hunspellHandle = this.hunspellHandle
 
 		const wordRef = wasmMemory.allocNullTerminatedUtf8String(word)
@@ -105,10 +100,10 @@ export class Hunspell {
 	}
 
 	private performStringListResultOperation(word: string, operationId: StringListResultOperationId) {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 		const hunspellHandle = this.hunspellHandle
 
 		const wordRef = wasmMemory.allocNullTerminatedUtf8String(word)
@@ -144,10 +139,10 @@ export class Hunspell {
 	}
 
 	generateByExample(word1: string, word2: string) {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 		const hunspellHandle = this.hunspellHandle
 
 		const word1Ref = wasmMemory.allocNullTerminatedUtf8String(word1)
@@ -173,10 +168,10 @@ export class Hunspell {
 	}
 
 	addWord(newWord: string) {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 		const hunspellHandle = this.hunspellHandle
 
 		const wordRef = wasmMemory.allocNullTerminatedUtf8String(newWord)
@@ -191,10 +186,10 @@ export class Hunspell {
 	}
 
 	addWordWithFlags(newWord: string, flags: string, description: string) {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 		const hunspellHandle = this.hunspellHandle
 
 		const wordRef = wasmMemory.allocNullTerminatedUtf8String(newWord)
@@ -208,15 +203,15 @@ export class Hunspell {
 		wordRef.free()
 
 		if (errorCode !== 0) {
-			throw new Error(`addWord failed with error code ${errorCode}`)
+			throw new Error(`addWordWithFlags failed with error code ${errorCode}`)
 		}
 	}
 
 	addWordWithAffix(newWord: string, example: string) {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 		const hunspellHandle = this.hunspellHandle
 
 		const wordRef = wasmMemory.allocNullTerminatedUtf8String(newWord)
@@ -228,15 +223,15 @@ export class Hunspell {
 		wordRef.free()
 
 		if (errorCode !== 0) {
-			throw new Error(`addWord failed with error code ${errorCode}`)
+			throw new Error(`addWordWithAffix failed with error code ${errorCode}`)
 		}
 	}
 
 	removeWord(wordToRemove: string) {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 		const hunspellHandle = this.hunspellHandle
 
 		const wordRef = wasmMemory.allocNullTerminatedUtf8String(wordToRemove)
@@ -259,10 +254,10 @@ export class Hunspell {
 	}
 
 	addDictionaryFromString(dictionary: string) {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 		const hunspellHandle = this.hunspellHandle
 
 		const randomId = getRandomId()
@@ -284,7 +279,7 @@ export class Hunspell {
 	}
 
 	getDictionaryEncoding() {
-		this.ensureInitializedAndNotDisposed()
+		this.ensureNotDisposed()
 
 		const m = this.wasmModule
 		const wasmMemory = this.wasmMemory!
@@ -304,11 +299,7 @@ export class Hunspell {
 			return
 		}
 
-		if (!this.isInitialized) {
-			throw new Error(`Hunspell instance can't be disposed since it hasn't been initialized yet.`)
-		}
-
-		const m = this.wasmMemory!.wasmModule
+		const m = this.wasmMemory.wasmModule
 
 		m._Hunspell_destroy(this.hunspellHandle)
 
@@ -316,8 +307,7 @@ export class Hunspell {
 			this.wasmMemory.freeAll()
 		}
 
-		this.hunspellHandle = undefined
-		this.wasmMemory = undefined
+		this.hunspellHandle = undefined as any
 		this.disposed = true
 	}
 
@@ -326,7 +316,7 @@ export class Hunspell {
 			return []
 		}
 
-		const wasmMemory = this.wasmMemory!
+		const wasmMemory = this.wasmMemory
 
 		const pointerArrayRef = wasmMemory.wrapUint32Array(address, count).detach()
 		const pointerArrayElements = pointerArrayRef.view
@@ -342,32 +332,20 @@ export class Hunspell {
 		return values
 	}
 
-	private ensureInitializedAndNotDisposed() {
+	private ensureNotDisposed() {
 		if (this.isDisposed) {
 			throw new Error(`Hunspell instance has been disposed`)
 		}
-
-		if (!this.isInitialized) {
-			throw new Error(`Hunspell instance has not been initialized`)
-		}
-	}
-
-	get isInitialized() {
-		return this.hunspellHandle != null
 	}
 
 	get isDisposed() {
 		return this.disposed
 	}
-
-	private get wasmModule() {
-		return this.wasmMemory?.wasmModule
-	}
 }
 
 let hunspellWasmInstance: any
 
-async function getInstance() {
+export async function getWasmModule() {
 	if (!hunspellWasmInstance) {
 		const { default: initializer } = await import('../wasm/hunspell.js')
 
